@@ -1,0 +1,56 @@
+# Packages build.sh removes from a Raspberry Pi OS Lite image before it's
+# written to a k3s/kube node's SD card. A leading # is a comment, blank
+# lines are skipped. Each line is one dpkg package name; if it isn't
+# installed, build.sh silently skips it.
+#
+# Deliberately NOT on this list: anything boot/network/SSH/config-
+# management needs - raspi-firmware, dhcpcd/NetworkManager,
+# openssh-server, sudo, systemd. Keep it that way.
+
+# Interactive configuration tool - your config management (Puppet,
+# Ansible, cloud-init, ...) sets the machine up, nobody runs this by hand.
+raspi-config
+
+# Bluetooth - headless cluster node, not used.
+bluez
+bluez-firmware
+pi-bluetooth
+
+# Button/switch event handler (e.g. power button) - not relevant on a
+# server.
+triggerhappy
+
+# Mobile modem / dial-up PPP support - hardware that's never present.
+modemmanager
+ppp
+
+# mDNS/Avahi - a cluster usually has its own DNS/service discovery
+# (Tailscale, CoreDNS, etc). If you rely on .local name resolution,
+# remove this block.
+avahi-daemon
+avahi-utils
+
+# Camera / GPIO python packages - a generic cluster node doesn't need
+# these (a camera or sensor node can install them back individually).
+python3-picamera2
+python3-rpi.gpio
+python3-gpiozero
+libcamera-apps-lite
+
+# Documentation - nobody reads man pages on a headless node.
+man-db
+manpages
+info
+doc-base
+
+# --- Wi-Fi stack ---------------------------------------------------------
+# Removed by default on the assumption that a k3s/kube cluster node is
+# wired. Comment this whole block out (or delete it) if any of your nodes
+# actually use Wi-Fi - without wpasupplicant, wpa_supplicant.conf-based
+# setup (e.g. raspbian_install-style first-boot provisioning) stops
+# working.
+wpasupplicant
+wireless-tools
+wireless-regdb
+iw
+crda

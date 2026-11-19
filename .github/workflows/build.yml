@@ -1,0 +1,42 @@
+name: Build golden image
+
+on:
+  schedule:
+    - cron: '17 3 1 * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download latest Raspberry Pi OS Lite (arm64)
+        run: |
+          curl -fL -o base.img.xz https://downloads.raspberrypi.com/raspios_lite_arm64_latest
+          xz -d base.img.xz
+
+      - name: Build golden image
+        run: ./run.sh base.img golden.img
+
+      - name: Fix ownership and compress
+        run: |
+          sudo chown "$(id -u):$(id -g)" golden.img
+          xz -T0 -9 golden.img
+          sha256sum golden.img.xz > golden.img.xz.sha256
+
+      - name: Determine release tag
+        id: tag
+        run: echo "tag=$(date +%Y.%m.%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Golden image ${{ steps.tag.outputs.tag }}
+          files: |
+            golden.img.xz
+            golden.img.xz.sha256

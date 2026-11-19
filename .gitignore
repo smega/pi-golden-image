@@ -1,0 +1,4 @@
+*.img
+*.img.xz
+*.sha256
+.work-*.img
